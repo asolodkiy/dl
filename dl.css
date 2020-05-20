@@ -1,0 +1,8 @@
+.vjs-overlay {
+     background-color: #333333;
+     color: white;
+     position: absolute;
+     margin-top: 100px;
+     margin-left: 20px;
+     top: 0;
+ }
