@@ -7,12 +7,7 @@ videojs.registerPlugin('dl', function () {
         highestQuality,
         spacer,
         newElement = document.createElement('div'),
-        newImage = document.createElement('img'),
-        overlay = document.createElement('p');
-
-    overlay.className = 'vjs-overlay';
-    overlay.innerHTML = "Becoming a plugin developer";
-    brightcovePlayer.el().appendChild(overlay);
+        newImage = document.createElement('img');
 
     brightcovePlayer.on('loadstart', function () {
         //Reinitialize array of MP4 renditions in case used with playlist
