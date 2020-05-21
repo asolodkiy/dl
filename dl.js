@@ -26,6 +26,11 @@ videojs.registerPlugin('dl', function () {
         rendtionsAra = brightcovePlayer.mediainfo.sources;
         totalRenditions = rendtionsAra.length;
 
+        console.log("=========================");
+        console.log("videoName: ", videoName);
+        console.log("=========================");
+
+
         // +++ Loop over videos and extract only MP4 versions +++
         for (var i = 0; i < totalRenditions; i++) {
             if (rendtionsAra[i].container === "MP4" && rendtionsAra[i].hasOwnProperty('src')) {
@@ -57,6 +62,10 @@ videojs.registerPlugin('dl', function () {
             x.onload = function (e) {
                 download(x.response, videoName, "video/mp4");
             };
+            console.log("=========================");
+            console.log("x.responseType: ", x.responseType);
+            console.log("x.response: ", x.response);
+            console.log("=========================");
             x.send();          //
         };
         newElement.appendChild(newImage);
