@@ -1,5 +1,11 @@
 videojs.registerPlugin('dl', function () {
+
+    // if (videojs.browser.IS_IOS) {
+    //     return;
+    // }
+
     // Create variables and new div, anchor and image for download icon
+
     var brightcovePlayer = this,
         videoName,
         totalRenditions,
