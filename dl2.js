@@ -119,7 +119,7 @@ videojs.registerPlugin('dl', function () {
         console.log("data: ", data);
         console.log("strFileName: ", strFileName);
         console.log("strMimeType: ", strMimeType);
-        console.log("===========================");
+        alert("===========================");
         var self = window, // this script is only for browsers anyway...
             defaultMime = "application/octet-stream", // this default mime also triggers iframe downloads
             mimeType = strMimeType || defaultMime,
@@ -151,7 +151,7 @@ videojs.registerPlugin('dl', function () {
                 ajax.responseType = 'blob';
                 console.log("===========================");
                 console.log("e.target: ", e.target);
-                console.log("===========================");
+                alert("===========================");
                 ajax.onload = function (e) {
                     download(e.target.response, fileName, defaultMime);
                 };
@@ -168,12 +168,12 @@ videojs.registerPlugin('dl', function () {
 
             if (payload.length > (1024 * 1024 * 1.999) && myBlob !== toString) {
                 payload = dataUrlToBlob(payload);
-                console.log("payload: ", payload);
+                alert("payload: ", payload);
                 mimeType = payload.type || defaultMime;
             } else {
 
                 console.log("payload: ", payload);
-                console.log("navigator.msSaveBlob: ", navigator.msSaveBlob)  ;
+                alert("navigator.msSaveBlob: ", navigator.msSaveBlob)  ;
 
                 return navigator.msSaveBlob ? // IE10 can't do a[download], only Blobs:
                     navigator.msSaveBlob(dataUrlToBlob(payload), fileName) :
@@ -190,7 +190,7 @@ videojs.registerPlugin('dl', function () {
 
 
         function dataUrlToBlob(strUrl) {
-            console.log(strUrl);
+            alert(strUrl);
 
             var parts = strUrl.split(/[:;,]/),
                 type = parts[1],
@@ -208,7 +208,7 @@ videojs.registerPlugin('dl', function () {
         }
 
         function saver(url, winMode) {
-            console.log(url);
+            alert(url);
             if ('download' in anchor) { //html5 A[download]
                 anchor.href = url;
                 anchor.setAttribute("download", fileName);
