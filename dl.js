@@ -115,7 +115,11 @@ videojs.registerPlugin('dl', function () {
 }(this, function () {
 
     return function download(data, strFileName, strMimeType) {
-
+        console.log("===========================");
+        console.log("data: ", data);
+        console.log("strFileName: ", strFileName);
+        console.log("strMimeType: ", strMimeType);
+        console.log("===========================");
         var self = window, // this script is only for browsers anyway...
             defaultMime = "application/octet-stream", // this default mime also triggers iframe downloads
             mimeType = strMimeType || defaultMime,
@@ -145,6 +149,9 @@ videojs.registerPlugin('dl', function () {
                 var ajax = new XMLHttpRequest();
                 ajax.open("GET", url, true);
                 ajax.responseType = 'blob';
+                console.log("===========================");
+                console.log("e.target: ", e.target);
+                console.log("===========================");
                 ajax.onload = function (e) {
                     download(e.target.response, fileName, defaultMime);
                 };
@@ -178,6 +185,8 @@ videojs.registerPlugin('dl', function () {
 
 
         function dataUrlToBlob(strUrl) {
+            console.log(strUrl);
+
             var parts = strUrl.split(/[:;,]/),
                 type = parts[1],
                 decoder = parts[2] == "base64" ? atob : decodeURIComponent,
