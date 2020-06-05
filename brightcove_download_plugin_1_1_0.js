@@ -1,11 +1,8 @@
-videojs.registerPlugin('dl', function () {
-
-    // if (videojs.browser.IS_IOS) {
-    //     return;
-    // }
-
-    // Create variables and new div, anchor and image for download icon
-
+//***************************************
+//* Download Video  v.1.1.0-20200605    *
+// **************************************
+videojs.registerPlugin('brightcove_download_plugin', function () {
+// Create variables and new div, anchor and image for download icon
     var brightcovePlayer = this,
         videoName,
         totalRenditions,
@@ -13,82 +10,74 @@ videojs.registerPlugin('dl', function () {
         highestQuality,
         spacer,
         newElement = document.createElement('div'),
-        newImage = document.createElement('img');
+        newImage = document.createElement('img'),
+        overlay = document.createElement("div");
+
+    overlay.innerHTML = '<p>Preparing to download video...</p>';
+    overlay.id = 'dlIsPreparing';
+    overlay.setAttribute("style", "    position: absolute;\n" +
+        "    top: 50%;\n" +
+        "    left: 50%;\n" +
+        "    transform: translate3d(-50%,-50%,0);\n" +
+        "    width: 240px;\n" +
+        "    border: 1px solid #757575;\n" +
+        "    border-radius: 4px;\n" +
+        "    background: rgba(0,0,0,0.3);\n" +
+        "    padding: 20px;\n" +
+        "    font-size: 1.5em;\n" +
+        "    text-align: center;\n" +
+        "    display: none;");
 
     brightcovePlayer.on('loadstart', function () {
-        //Reinitialize array of MP4 renditions in case used with playlist
-        //This prevents the array having a cumulative list for all videos in playlist
+        brightcovePlayer.el().append(overlay);
         mp4Ara = [];
-
-        // +++ Get video name and the MP4 renditions +++
         videoName = brightcovePlayer.mediainfo['name'];
         videoName = removeSpaces(videoName);
         rendtionsAra = brightcovePlayer.mediainfo.sources;
         totalRenditions = rendtionsAra.length;
-
-        console.log("=========================");
-        console.log("videoName: ", videoName);
-        console.log("=========================");
-
-
-        // +++ Loop over videos and extract only MP4 versions +++
         for (var i = 0; i < totalRenditions; i++) {
             if (rendtionsAra[i].container === "MP4" && rendtionsAra[i].hasOwnProperty('src')) {
                 mp4Ara.push(rendtionsAra[i]);
             }
         }
-
-        // +++ Sort the renditions from highest to lowest on size+++
         mp4Ara.sort(function (a, b) {
             return b.size - a.size;
         });
-
-        // +++ Extract the highest rendition +++
         highestQuality = mp4Ara[0].src;
-
-        // +++ Build the download image element +++
         newElement.id = 'downloadImage';
         newElement.className = 'vjs-control downloadStyle';
         newImage.setAttribute('src', 'https://solutions.brightcove.com/bcls/brightcove-player/download-video/file-download.png');
         newImage.style['cursor'] = 'pointer';
 
-        // +++ On image click call the download function +++
         newImage.onclick = function () {
-            // The download function forces download by the browsers
-            // NOT opening the video in a new window/tab
             var x = new XMLHttpRequest();
             x.open("GET", highestQuality, true);
             x.responseType = 'blob';
             x.onload = function (e) {
                 download(x.response, videoName, "video/mp4");
             };
-            console.log("=========================");
-            console.log("x.responseType: ", x.responseType);
-            console.log("x.response: ", x.response);
-            console.log("=========================");
-            x.send();          //
+            toggleDlInfo();
+            x.send();
         };
         newElement.appendChild(newImage);
-
-        // +++ Place the download image +++
-        // Get a handle on the spacer element
         spacer = brightcovePlayer.controlBar.customControlSpacer.el();
-        // Set the content of the spacer to be right justified
         spacer.setAttribute("style", "justify-content: flex-end;");
-        // Place the new element in the spacer
         spacer.appendChild(newElement);
     });
 
-    /*
-         * remove spaces from a string
-         * @param {String} str string to process
-         * @return {String} trimmed string
-         */
     function removeSpaces(str) {
         str = str.replace(/\s/g, '');
         return str;
     }
 
+    function toggleDlInfo() {
+        overlay.style.display = "block";
+        newElement.setAttribute("style", "pointer-events: none;");
+        setTimeout(function () {
+            newElement.setAttribute("style", "pointer-events: auto;");
+            overlay.style.display = "none";
+        }, 1500)
+    }
 });
 //download.js v4.2, by dandavis; 2008-2016. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
@@ -115,11 +104,6 @@ videojs.registerPlugin('dl', function () {
 }(this, function () {
 
     return function download(data, strFileName, strMimeType) {
-        console.log("===========================");
-        console.log("data: ", data);
-        console.log("strFileName: ", strFileName);
-        console.log("strMimeType: ", strMimeType);
-        console.log("===========================");
         var self = window, // this script is only for browsers anyway...
             defaultMime = "application/octet-stream", // this default mime also triggers iframe downloads
             mimeType = strMimeType || defaultMime,
@@ -130,7 +114,7 @@ videojs.registerPlugin('dl', function () {
                 return String(a);
             },
             myBlob = (self.Blob || self.MozBlob || self.WebKitBlob || toString),
-            fileName = strFileName || "download",
+            fileName = (strFileName + "." + strMimeType.split("/")[1]) || "download",
             blob,
             reader;
         myBlob = myBlob.call ? myBlob.bind(self) : Blob;
@@ -141,7 +125,6 @@ videojs.registerPlugin('dl', function () {
             payload = payload[1];
         }
 
-
         if (url && url.length < 2048) { // if no filename and no mime, assume a url was passed as the only argument
             fileName = url.split("/").pop().split("?")[0];
             anchor.href = url; // assign href prop to temp anchor
@@ -149,9 +132,6 @@ videojs.registerPlugin('dl', function () {
                 var ajax = new XMLHttpRequest();
                 ajax.open("GET", url, true);
                 ajax.responseType = 'blob';
-                console.log("===========================");
-                console.log("e.target: ", e.target);
-                console.log("===========================");
                 ajax.onload = function (e) {
                     download(e.target.response, fileName, defaultMime);
                 };
@@ -159,27 +139,19 @@ videojs.registerPlugin('dl', function () {
                     ajax.send();
                 }, 0); // allows setting custom ajax headers using the return:
                 return ajax;
-            } // end if valid url?
-        } // end if url?
-
-
+            }
+        }
         //go ahead and download dataURLs right away
         if (/^data\:[\w+\-]+\/[\w+\-]+[,;]/.test(payload)) {
 
             if (payload.length > (1024 * 1024 * 1.999) && myBlob !== toString) {
                 payload = dataUrlToBlob(payload);
-                console.log("payload: ", payload);
                 mimeType = payload.type || defaultMime;
             } else {
-
-                console.log("payload: ", payload);
-                console.log("navigator.msSaveBlob: ", navigator.msSaveBlob)  ;
-
                 return navigator.msSaveBlob ? // IE10 can't do a[download], only Blobs:
                     navigator.msSaveBlob(dataUrlToBlob(payload), fileName) :
                     saver(payload); // everyone else can save dataURLs un-processed
             }
-
         } //end if dataURL passed?
 
         blob = payload instanceof myBlob ?
@@ -188,10 +160,7 @@ videojs.registerPlugin('dl', function () {
                 type: mimeType
             });
 
-
         function dataUrlToBlob(strUrl) {
-            console.log(strUrl);
-
             var parts = strUrl.split(/[:;,]/),
                 type = parts[1],
                 decoder = parts[2] == "base64" ? atob : decodeURIComponent,
@@ -208,7 +177,6 @@ videojs.registerPlugin('dl', function () {
         }
 
         function saver(url, winMode) {
-            console.log(url);
             if ('download' in anchor) { //html5 A[download]
                 anchor.href = url;
                 anchor.setAttribute("download", fileName);
@@ -252,12 +220,9 @@ videojs.registerPlugin('dl', function () {
             }, 333);
 
         } //end saver
-
-
         if (navigator.msSaveBlob) { // IE10+ : (has Blob, but not a[download] or URL)
             return navigator.msSaveBlob(blob, fileName);
         }
-
         if (self.URL) { // simple fast and modern way using Blob and URL:
             saver(self.URL.createObjectURL(blob), true);
         } else {
@@ -269,8 +234,6 @@ videojs.registerPlugin('dl', function () {
                     return saver("data:" + mimeType + "," + encodeURIComponent(blob));
                 }
             }
-
-            // Blob but not URL support:
             reader = new FileReader();
             reader.onload = function (e) {
                 saver(this.result);
@@ -278,5 +241,5 @@ videojs.registerPlugin('dl', function () {
             reader.readAsDataURL(blob);
         }
         return true;
-    }; /* end download() */
+    };
 }));

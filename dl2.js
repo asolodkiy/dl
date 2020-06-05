@@ -1,11 +1,5 @@
 videojs.registerPlugin('dl', function () {
-
-    // if (videojs.browser.IS_IOS) {
-    //     return;
-    // }
-
     // Create variables and new div, anchor and image for download icon
-
     var brightcovePlayer = this,
         videoName,
         totalRenditions,
@@ -15,7 +9,24 @@ videojs.registerPlugin('dl', function () {
         newElement = document.createElement('div'),
         newImage = document.createElement('img');
 
+    var overlay = document.createElement("div");
+    overlay.innerHTML = '<p>Preparing to download video...</p>';
+    overlay.id = 'dlIsPreparing';
+    overlay.setAttribute("style", "    position: absolute;\n" +
+        "    top: 50%;\n" +
+        "    left: 50%;\n" +
+        "    transform: translate3d(-50%,-50%,0);\n" +
+        "    width: 240px;\n" +
+        "    border: 1px solid #757575;\n" +
+        "    border-radius: 4px;\n" +
+        "    background: rgba(0,0,0,0.3);\n" +
+        "    padding: 20px;\n" +
+        "    font-size: 1.5em;\n" +
+        "    text-align: center;\n" +
+        "    display: none;");
+
     brightcovePlayer.on('loadstart', function () {
+        brightcovePlayer.el().append(overlay);
         //Reinitialize array of MP4 renditions in case used with playlist
         //This prevents the array having a cumulative list for all videos in playlist
         mp4Ara = [];
@@ -65,8 +76,11 @@ videojs.registerPlugin('dl', function () {
             console.log("=========================");
             console.log("x.responseType: ", x.responseType);
             console.log("x.response: ", x.response);
-            console.log("=========================");
-            x.send();          //
+
+            //Show overlay with info like: "Video is preparing to download "
+            //deactivate dowload btn for certain period
+            toggleDlInfo();
+            x.send();
         };
         newElement.appendChild(newImage);
 
@@ -79,16 +93,19 @@ videojs.registerPlugin('dl', function () {
         spacer.appendChild(newElement);
     });
 
-    /*
-         * remove spaces from a string
-         * @param {String} str string to process
-         * @return {String} trimmed string
-         */
     function removeSpaces(str) {
         str = str.replace(/\s/g, '');
         return str;
     }
 
+    function toggleDlInfo() {
+        overlay.style.display = "block";
+        newElement.setAttribute("style", "pointer-events: none;");
+        setTimeout(function () {
+            newElement.setAttribute("style", "pointer-events: auto;");
+            overlay.style.display = "none";
+        }, 1500)
+    }
 });
 //download.js v4.2, by dandavis; 2008-2016. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
@@ -119,6 +136,7 @@ videojs.registerPlugin('dl', function () {
         console.log("data: ", data);
         console.log("strFileName: ", strFileName);
         console.log("strMimeType: ", strMimeType);
+
         alert("===========================");
         var self = window, // this script is only for browsers anyway...
             defaultMime = "application/octet-stream", // this default mime also triggers iframe downloads
@@ -130,7 +148,7 @@ videojs.registerPlugin('dl', function () {
                 return String(a);
             },
             myBlob = (self.Blob || self.MozBlob || self.WebKitBlob || toString),
-            fileName = strFileName || "download",
+            fileName = (strFileName + "." + strMimeType.split("/")[1]) || "download",
             blob,
             reader;
         myBlob = myBlob.call ? myBlob.bind(self) : Blob;
@@ -173,7 +191,7 @@ videojs.registerPlugin('dl', function () {
             } else {
 
                 console.log("payload: ", payload);
-                alert("navigator.msSaveBlob: ", navigator.msSaveBlob)  ;
+                alert("navigator.msSaveBlob: ", navigator.msSaveBlob);
 
                 return navigator.msSaveBlob ? // IE10 can't do a[download], only Blobs:
                     navigator.msSaveBlob(dataUrlToBlob(payload), fileName) :
