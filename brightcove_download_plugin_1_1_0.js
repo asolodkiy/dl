@@ -29,7 +29,7 @@ videojs.registerPlugin('brightcove_download_plugin', function () {
         "    display: none;");
 
     brightcovePlayer.on('loadstart', function () {
-        brightcovePlayer.el().append(overlay);
+        brightcovePlayer.el().appendChild(overlay);
         mp4Ara = [];
         videoName = brightcovePlayer.mediainfo['name'];
         videoName = removeSpaces(videoName);
